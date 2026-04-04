@@ -2,9 +2,9 @@
 
 A small Python app that fetches a YouTube transcript, generates a summary, and lets you ask questions about the video through a simple Gradio UI.
 
-```text
-assets/app.png
-```
+<p align="center">
+  <img src="assets/app.png" alt="App screenshot" width="800"/>
+</p>
 
 ## Features
 
