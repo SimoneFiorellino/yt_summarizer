@@ -26,6 +26,8 @@ class AppConfig:
     llm_model: str = "phi3:mini"
     llm_temperature: float = 0.5
     llm_max_tokens: int = 256
+    llm_timeout_seconds: float = 60.0
+    llm_retry_attempts: int = 2
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     embedding_device: str = "cpu"
     normalize_embeddings: bool = True
@@ -45,6 +47,12 @@ def load_config(env_file: str | Path | None = DEFAULT_ENV_FILE) -> AppConfig:
         llm_model=os.getenv("YT_LLM_MODEL", AppConfig.llm_model),
         llm_temperature=float(os.getenv("YT_LLM_TEMPERATURE", AppConfig.llm_temperature)),
         llm_max_tokens=int(os.getenv("YT_LLM_MAX_TOKENS", AppConfig.llm_max_tokens)),
+        llm_timeout_seconds=float(
+            os.getenv("YT_LLM_TIMEOUT_SECONDS", AppConfig.llm_timeout_seconds)
+        ),
+        llm_retry_attempts=int(
+            os.getenv("YT_LLM_RETRY_ATTEMPTS", AppConfig.llm_retry_attempts)
+        ),
         embedding_model=os.getenv("YT_EMBEDDING_MODEL", AppConfig.embedding_model),
         embedding_device=os.getenv("YT_EMBEDDING_DEVICE", AppConfig.embedding_device),
         normalize_embeddings=_env_bool(

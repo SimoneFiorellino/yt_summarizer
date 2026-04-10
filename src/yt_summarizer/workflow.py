@@ -1,6 +1,7 @@
 """Compatibility wrappers for high-level workflows."""
 
 from yt_summarizer.core import VideoRAGService
+from yt_summarizer.errors import YTSummarizerError
 from yt_summarizer.retrieval.faiss_store import retrieve
 
 
@@ -14,7 +15,7 @@ def summarize_video(video_url):
     """Generate a summary for a YouTube video."""
     try:
         return VideoRAGService().summarize_video(video_url)
-    except ValueError as exc:
+    except YTSummarizerError as exc:
         return str(exc)
 
 
@@ -22,5 +23,5 @@ def answer_question(video_url, user_question):
     """Answer a user question about a YouTube video."""
     try:
         return VideoRAGService().answer_question(video_url, user_question)
-    except ValueError as exc:
+    except YTSummarizerError as exc:
         return str(exc)

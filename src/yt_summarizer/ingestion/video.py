@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from yt_summarizer.errors import InvalidVideoURLError, TranscriptUnavailableError
 from yt_summarizer.transcript.fetchers import get_transcript, get_video_id
 from yt_summarizer.transcript.processing import process
 
@@ -20,15 +21,19 @@ def ingest_video(video_url: str) -> IngestedTranscript:
     """Fetch and normalize a YouTube transcript."""
     video_id = get_video_id(video_url)
     if not video_id:
-        raise ValueError("Please provide a valid YouTube URL.")
+        raise InvalidVideoURLError("Please provide a valid YouTube URL.")
 
     transcript = get_transcript(video_url)
     if not transcript:
-        raise ValueError("No English transcript is available for this video.")
+        raise TranscriptUnavailableError(
+            "No English transcript is available for this video."
+        )
 
     processed_text = process(transcript)
     if not processed_text:
-        raise ValueError("Transcript was fetched but could not be processed.")
+        raise TranscriptUnavailableError(
+            "Transcript was fetched but could not be processed."
+        )
 
     return IngestedTranscript(
         video_url=video_url,

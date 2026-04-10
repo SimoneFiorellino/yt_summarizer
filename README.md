@@ -41,6 +41,8 @@ Main runtime parameters:
 ```env
 YT_LLM_MODEL=phi3:mini
 YT_LLM_TEMPERATURE=0.5
+YT_LLM_TIMEOUT_SECONDS=60
+YT_LLM_RETRY_ATTEMPTS=2
 YT_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 YT_CHUNK_SIZE=1000
 YT_CHUNK_OVERLAP=200
@@ -52,4 +54,3 @@ YT_RETRIEVAL_TOP_K=7
 ```bash
 uv run src/main.py
 ```
-

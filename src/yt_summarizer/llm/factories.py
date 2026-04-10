@@ -8,11 +8,13 @@ def llm(
     model: str = "phi3:mini",
     temperature: float = 0.5,
     max_tokens: int = 256,
+    timeout_seconds: float = 60.0,
 ):
     return ChatOllama(
         model=model,
         temperature=temperature,
         num_predict=max_tokens,
+        client_kwargs={"timeout": timeout_seconds},
     )
 
 
@@ -28,9 +30,14 @@ def embedding(
     )
 
 
-def create_llm(model="phi3:mini", temperature=0.5, max_tokens=256):
+def create_llm(model="phi3:mini", temperature=0.5, max_tokens=256, timeout_seconds=60.0):
     """Create the chat model used by the application."""
-    return llm(model=model, temperature=temperature, max_tokens=max_tokens)
+    return llm(
+        model=model,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        timeout_seconds=timeout_seconds,
+    )
 
 
 def create_embedding_model(

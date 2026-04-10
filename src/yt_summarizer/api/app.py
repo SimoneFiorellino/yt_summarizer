@@ -1,6 +1,7 @@
 """FastAPI application factory."""
 
 from yt_summarizer.core import VideoRAGService
+from yt_summarizer.errors import YTSummarizerError
 
 
 def create_app():
@@ -46,16 +47,15 @@ def create_app():
         """Summarize the video at the given URL."""
         try:
             return {"summary": service.summarize_video(request.video_url)}
-        except ValueError as exc: 
-            # Transform ValueErrors from the service into HTTP 400 responses;
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except YTSummarizerError as exc:
+            raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     @app.post("/ask")
     def ask(request: QuestionRequest):
         """Answer a question about the video at the given URL."""
         try:
             return {"answer": service.answer_question(request.video_url, request.question)}
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except YTSummarizerError as exc:
+            raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     return app
