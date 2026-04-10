@@ -34,6 +34,8 @@ class AppConfig:
     chunk_size: int = 1000
     chunk_overlap: int = 200
     retrieval_top_k: int = 7
+    log_level: str = "INFO"
+    log_json: bool = True
     gradio_host: str = "0.0.0.0"
     gradio_port: int = 7865
 
@@ -62,6 +64,8 @@ def load_config(env_file: str | Path | None = DEFAULT_ENV_FILE) -> AppConfig:
         chunk_size=int(os.getenv("YT_CHUNK_SIZE", AppConfig.chunk_size)),
         chunk_overlap=int(os.getenv("YT_CHUNK_OVERLAP", AppConfig.chunk_overlap)),
         retrieval_top_k=int(os.getenv("YT_RETRIEVAL_TOP_K", AppConfig.retrieval_top_k)),
+        log_level=os.getenv("YT_LOG_LEVEL", AppConfig.log_level).upper(),
+        log_json=_env_bool("YT_LOG_JSON", AppConfig.log_json),
         gradio_host=os.getenv("YT_GRADIO_HOST", AppConfig.gradio_host),
         gradio_port=int(os.getenv("YT_GRADIO_PORT", AppConfig.gradio_port)),
     )

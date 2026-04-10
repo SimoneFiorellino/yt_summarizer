@@ -1,5 +1,6 @@
 """Utilities for fetching YouTube transcripts."""
 
+import logging
 import re
 
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -19,6 +20,7 @@ from yt_summarizer.errors import (
 
 
 YOUTUBE_WATCH_URL_PATTERN = r"https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})"
+logger = logging.getLogger(__name__)
 
 
 def get_video_id(url):
@@ -34,6 +36,7 @@ def get_transcript(url):
     # Extracts the video ID from the URL
     video_id = get_video_id(url)
     if not video_id:
+        logger.warning("invalid_video_url")
         raise InvalidVideoURLError("Please provide a valid YouTube URL.")
 
     # Create a YouTubeTranscriptApi() object
@@ -43,14 +46,26 @@ def get_transcript(url):
     try:
         transcripts = ytt_api.list(video_id)
     except (InvalidVideoId, VideoUnavailable) as exc:
+        logger.warning(
+            "video_invalid_or_unavailable",
+            extra={"video_id": video_id, "error": str(exc)},
+        )
         raise InvalidVideoURLError(
             "The provided YouTube video is invalid or unavailable."
         ) from exc
     except (NoTranscriptFound, TranscriptsDisabled) as exc:
+        logger.warning(
+            "transcript_unavailable",
+            extra={"video_id": video_id, "error": str(exc)},
+        )
         raise TranscriptUnavailableError(
             "No transcript is available for this YouTube video."
         ) from exc
     except YouTubeTranscriptApiException as exc:
+        logger.warning(
+            "transcript_list_failed",
+            extra={"video_id": video_id, "error": str(exc)},
+        )
         raise TranscriptFetchError("Could not fetch the YouTube transcript.") from exc
 
     transcript = ""
@@ -67,9 +82,14 @@ def get_transcript(url):
                     transcript = t.fetch()
                     break  # Prioritize the manually created transcript, exit the loop
     except YouTubeTranscriptApiException as exc:
+        logger.warning(
+            "transcript_fetch_failed",
+            extra={"video_id": video_id, "error": str(exc)},
+        )
         raise TranscriptFetchError("Could not fetch the YouTube transcript.") from exc
 
     if not transcript:
+        logger.warning("english_transcript_unavailable", extra={"video_id": video_id})
         raise TranscriptUnavailableError(
             "No English transcript is available for this YouTube video."
         )
