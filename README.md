@@ -22,24 +22,29 @@ A small Python app that fetches a YouTube transcript, generates a summary, and l
 - `langchain-huggingface` and `sentence-transformers` for embeddings
 - `faiss-cpu` for vector search over transcript chunks
 
-## Project Structure
-
-```text
-src/
-  main.py
-  yt_summarizer/
-    cli.py
-    workflow.py
-    llm/
-    prompts/
-    retrieval/
-    transcript/
-```
-
 ## Installation
 
 ```bash
 uv sync
+```
+
+## Configuration
+
+Create a local `.env` file from the example:
+
+```bash
+cp .env.example .env
+```
+
+Main runtime parameters:
+
+```env
+YT_LLM_MODEL=phi3:mini
+YT_LLM_TEMPERATURE=0.5
+YT_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+YT_CHUNK_SIZE=1000
+YT_CHUNK_OVERLAP=200
+YT_RETRIEVAL_TOP_K=7
 ```
 
 ## Run the App
@@ -48,4 +53,3 @@ uv sync
 uv run src/main.py
 ```
 
-The app launches locally on port `7865`.
