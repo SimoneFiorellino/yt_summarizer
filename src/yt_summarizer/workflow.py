@@ -14,7 +14,9 @@ def generate_answer(question, faiss_index, qa_chain, k=7):
 def summarize_video(video_url):
     """Generate a summary for a YouTube video."""
     try:
-        return VideoRAGService().summarize_video(video_url)
+        service = VideoRAGService()
+        service.ingest_video(video_url)
+        return service.summarize_video(video_url=video_url)
     except YTSummarizerError as exc:
         return str(exc)
 
@@ -22,6 +24,11 @@ def summarize_video(video_url):
 def answer_question(video_url, user_question):
     """Answer a user question about a YouTube video."""
     try:
-        return VideoRAGService().answer_question(video_url, user_question)
+        service = VideoRAGService()
+        service.ingest_video(video_url)
+        return service.answer_question(
+            video_url=video_url,
+            question=user_question,
+        ).answer
     except YTSummarizerError as exc:
         return str(exc)

@@ -59,6 +59,7 @@ YT_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 YT_CHUNK_SIZE=1000
 YT_CHUNK_OVERLAP=200
 YT_RETRIEVAL_TOP_K=7
+YT_DATA_DIR=data
 YT_LOG_LEVEL=INFO
 YT_LOG_JSON=true
 YT_API_PORT=8000
@@ -67,11 +68,19 @@ YT_GRADIO_PORT=7865
 
 ## Run the Gradio UI
 
+Start the FastAPI backend first:
+
+```bash
+uv run yt-summarizer-api
+```
+
+Then run the Gradio frontend:
+
 ```bash
 uv run yt-summarizer-ui
 ```
 
-The UI launches locally on port `7865` by default.
+The UI launches locally on port `7865` by default and calls the API backend.
 
 ## Run the FastAPI Backend
 
@@ -91,9 +100,23 @@ http://localhost:8000/docs
 Example request:
 
 ```bash
-curl -X POST http://localhost:8000/summarize \
+curl -X POST http://localhost:8000/ingest_video \
   -H "Content-Type: application/json" \
   -d '{"video_url": "https://www.youtube.com/watch?v=VIDEO_ID"}'
+```
+
+Then query the online endpoints using the returned `video_id`:
+
+```bash
+curl -X POST http://localhost:8000/summarize \
+  -H "Content-Type: application/json" \
+  -d '{"video_id": "VIDEO_ID"}'
+```
+
+```bash
+curl -X POST http://localhost:8000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"video_id": "VIDEO_ID", "question": "What is the main topic?"}'
 ```
 
 ## Alternative Local Entrypoint

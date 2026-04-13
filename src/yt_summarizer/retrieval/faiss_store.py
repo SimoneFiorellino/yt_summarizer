@@ -1,11 +1,33 @@
 """FAISS helpers for indexing and retrieval."""
 
+from pathlib import Path
+
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
 
 
 def create_faiss_index(chunks, embedding_model):
     """Create a FAISS index from transcript chunks."""
+    if chunks and isinstance(chunks[0], Document):
+        return FAISS.from_documents(chunks, embedding_model)
     return FAISS.from_texts(chunks, embedding_model)
+
+
+def save_faiss_index(faiss_index, directory: str | Path):
+    """Persist a FAISS index to disk."""
+    path = Path(directory)
+    path.mkdir(parents=True, exist_ok=True)
+    faiss_index.save_local(str(path))
+
+
+def load_faiss_index(directory: str | Path, embedding_model):
+    """Load a persisted FAISS index from disk."""
+    path = Path(directory)
+    return FAISS.load_local(
+        str(path),
+        embedding_model,
+        allow_dangerous_deserialization=True,
+    )
 
 
 def retrieve(query, faiss_index, k=7):

@@ -34,6 +34,7 @@ class AppConfig:
     chunk_size: int = 1000
     chunk_overlap: int = 200
     retrieval_top_k: int = 7
+    data_dir: str = "data"
     log_level: str = "INFO"
     log_json: bool = True
     api_host: str = "0.0.0.0"
@@ -68,6 +69,7 @@ def load_config(env_file: str | Path | None = DEFAULT_ENV_FILE) -> AppConfig:
         chunk_size=int(os.getenv("YT_CHUNK_SIZE", AppConfig.chunk_size)),
         chunk_overlap=int(os.getenv("YT_CHUNK_OVERLAP", AppConfig.chunk_overlap)),
         retrieval_top_k=int(os.getenv("YT_RETRIEVAL_TOP_K", AppConfig.retrieval_top_k)),
+        data_dir=os.getenv("YT_DATA_DIR", AppConfig.data_dir),
         log_level=os.getenv("YT_LOG_LEVEL", AppConfig.log_level).upper(),
         log_json=_env_bool("YT_LOG_JSON", AppConfig.log_json),
         api_host=os.getenv("YT_API_HOST", AppConfig.api_host),

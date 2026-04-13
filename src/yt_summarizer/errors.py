@@ -31,6 +31,12 @@ class TranscriptFetchError(YTSummarizerError):
     status_code = 502
 
 
+class ArtifactNotFoundError(YTSummarizerError):
+    """Raised when online endpoints are called before offline ingestion/indexing."""
+
+    status_code = 404
+
+
 class RetrievalError(YTSummarizerError):
     """Raised when vector indexing or similarity search fails."""
 

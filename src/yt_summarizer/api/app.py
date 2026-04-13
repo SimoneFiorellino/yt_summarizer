@@ -6,7 +6,6 @@ import time
 from yt_summarizer.config import load_config
 from yt_summarizer.core import VideoRAGService
 from yt_summarizer.errors import YTSummarizerError
-from yt_summarizer.ingestion import ingest_video
 
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,8 @@ def create_app():
     class VideoRequest(BaseModel):
         """Request model for video summarization."""
 
-        video_url: str
+        video_url: str | None = None
+        video_id: str | None = None
 
     class HealthResponse(BaseModel):
         """Response model for API health checks."""
@@ -43,13 +43,16 @@ def create_app():
         """Response model for transcript ingestion."""
 
         video_id: str
+        language: str
         transcript_items: int
         processed_chars: int
+        chunk_count: int
 
     class QuestionRequest(BaseModel):
         """Request model for question answering."""
 
-        video_url: str
+        video_url: str | None = None
+        video_id: str | None = None
         question: str
 
     class SummaryResponse(BaseModel):
@@ -57,10 +60,23 @@ def create_app():
 
         summary: str
 
+    class SourceResponse(BaseModel):
+        """Response model for a retrieved supporting chunk."""
+
+        video_id: str
+        chunk_id: int
+        source: str
+        language: str
+        start_time: float
+        end_time: float
+        source_attribution: str
+        excerpt: str
+
     class AnswerResponse(BaseModel):
         """Response model for question answering."""
 
         answer: str
+        sources: list[SourceResponse]
 
     #### RAG logic and API endpoints ####
 
@@ -108,11 +124,18 @@ def create_app():
     def ingest(request: VideoRequest):
         """Fetch and preprocess the transcript for a YouTube video."""
         try:
-            ingested = ingest_video(request.video_url)
+            if not request.video_url:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Offline ingestion requires a valid video_url.",
+                )
+            ingested = service.ingest_video(request.video_url)
             return IngestVideoResponse(
                 video_id=ingested.video_id,
+                language=ingested.language,
                 transcript_items=len(ingested.raw_transcript),
                 processed_chars=len(ingested.processed_text),
+                chunk_count=ingested.chunk_count,
             )
         except YTSummarizerError as exc:
             logger.warning(
@@ -130,7 +153,12 @@ def create_app():
     def summarize(request: VideoRequest):
         """Summarize the video at the given URL."""
         try:
-            return SummaryResponse(summary=service.summarize_video(request.video_url))
+            return SummaryResponse(
+                summary=service.summarize_video(
+                    video_url=request.video_url,
+                    video_id=request.video_id,
+                )
+            )
         except YTSummarizerError as exc:
             logger.warning(
                 "api_error",
@@ -147,8 +175,16 @@ def create_app():
     def ask(request: QuestionRequest):
         """Answer a question about the video at the given URL."""
         try:
+            result = service.answer_question(
+                video_url=request.video_url,
+                video_id=request.video_id,
+                question=request.question,
+            )
             return AnswerResponse(
-                answer=service.answer_question(request.video_url, request.question)
+                answer=result.answer,
+                sources=[
+                    SourceResponse(**source.__dict__) for source in result.sources
+                ],
             )
         except YTSummarizerError as exc:
             logger.warning(

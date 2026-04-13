@@ -17,9 +17,11 @@ from yt_summarizer.prompts.templates import (
 )
 from yt_summarizer.retrieval.faiss_store import (
     create_faiss_index,
+    load_faiss_index,
     perform_similarity_search,
     retrieve,
     retrieve_context,
+    save_faiss_index,
 )
 from yt_summarizer.transcript.fetchers import get_transcript, get_video_id
 from yt_summarizer.transcript.processing import (
@@ -48,11 +50,13 @@ __all__ = [
     "get_video_id",
     "ingest_video",
     "llm",
+    "load_faiss_index",
     "load_config",
     "perform_similarity_search",
     "process",
     "retrieve",
     "retrieve_context",
+    "save_faiss_index",
     "summarize_video",
     "summary_prompt",
 ]
