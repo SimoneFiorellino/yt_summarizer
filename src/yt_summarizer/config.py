@@ -49,7 +49,9 @@ def load_config(env_file: str | Path | None = DEFAULT_ENV_FILE) -> AppConfig:
 
     return AppConfig(
         llm_model=os.getenv("YT_LLM_MODEL", AppConfig.llm_model),
-        llm_temperature=float(os.getenv("YT_LLM_TEMPERATURE", AppConfig.llm_temperature)),
+        llm_temperature=float(
+            os.getenv("YT_LLM_TEMPERATURE", AppConfig.llm_temperature)
+        ),
         llm_max_tokens=int(os.getenv("YT_LLM_MAX_TOKENS", AppConfig.llm_max_tokens)),
         llm_timeout_seconds=float(
             os.getenv("YT_LLM_TIMEOUT_SECONDS", AppConfig.llm_timeout_seconds)

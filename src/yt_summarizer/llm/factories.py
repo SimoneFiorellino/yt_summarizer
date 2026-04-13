@@ -30,7 +30,9 @@ def embedding(
     )
 
 
-def create_llm(model="phi3:mini", temperature=0.5, max_tokens=256, timeout_seconds=60.0):
+def create_llm(
+    model="phi3:mini", temperature=0.5, max_tokens=256, timeout_seconds=60.0
+):
     """Create the chat model used by the application."""
     return llm(
         model=model,

@@ -27,7 +27,10 @@ from yt_summarizer.ingestion import ingest_video
 from yt_summarizer.llm.chains import create_qa_chain, create_summary_chain
 from yt_summarizer.llm.factories import embedding, llm
 from yt_summarizer.observability import configure_logging, log_step
-from yt_summarizer.prompts.templates import create_qa_prompt_template, create_summary_prompt
+from yt_summarizer.prompts.templates import (
+    create_qa_prompt_template,
+    create_summary_prompt,
+)
 from yt_summarizer.retrieval.faiss_store import create_faiss_index, retrieve
 from yt_summarizer.transcript.processing import chunk_transcript
 
@@ -58,7 +61,9 @@ class VideoRAGService:
 
         with log_step(logger, "summary_chain_create", video_id=ingested.video_id):
             try:
-                summary_chain = create_summary_chain(self._llm(), create_summary_prompt())
+                summary_chain = create_summary_chain(
+                    self._llm(), create_summary_prompt()
+                )
             except Exception as exc:
                 raise ModelError("Could not initialize the summary model.") from exc
 
@@ -104,7 +109,9 @@ class VideoRAGService:
                 faiss_index = create_faiss_index(chunks, self._embedding_model())
                 context = retrieve(question, faiss_index, k=self.config.retrieval_top_k)
             except Exception as exc:
-                raise RetrievalError("Could not retrieve relevant transcript context.") from exc
+                raise RetrievalError(
+                    "Could not retrieve relevant transcript context."
+                ) from exc
 
         logger.info(
             "context_retrieved",
@@ -119,7 +126,9 @@ class VideoRAGService:
             try:
                 qa_chain = create_qa_chain(self._llm(), create_qa_prompt_template())
             except Exception as exc:
-                raise ModelError("Could not initialize the question-answering model.") from exc
+                raise ModelError(
+                    "Could not initialize the question-answering model."
+                ) from exc
 
         with log_step(logger, "answer_generation", video_id=ingested.video_id):
             answer = self._run_model_call(

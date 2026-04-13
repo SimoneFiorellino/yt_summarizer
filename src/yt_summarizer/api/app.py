@@ -26,40 +26,46 @@ def create_app():
             "FastAPI API support requires installing the 'fastapi' and 'pydantic' "
             "packages."
         ) from exc
-    
+
     #### Pydantic models for request validation ####
 
     class VideoRequest(BaseModel):
         """Request model for video summarization."""
+
         video_url: str
 
     class HealthResponse(BaseModel):
         """Response model for API health checks."""
+
         status: str
 
     class IngestVideoResponse(BaseModel):
         """Response model for transcript ingestion."""
+
         video_id: str
         transcript_items: int
         processed_chars: int
 
     class QuestionRequest(BaseModel):
         """Request model for question answering."""
+
         video_url: str
         question: str
 
     class SummaryResponse(BaseModel):
         """Response model for video summarization."""
+
         summary: str
 
     class AnswerResponse(BaseModel):
         """Response model for question answering."""
+
         answer: str
 
     #### RAG logic and API endpoints ####
 
-    service = VideoRAGService() # The API should not manage the RAG service lifecycle;
-    app = FastAPI(title="YT Summarizer API") # Create the FastAPI app;
+    service = VideoRAGService()  # The API should not manage the RAG service lifecycle;
+    app = FastAPI(title="YT Summarizer API")  # Create the FastAPI app;
 
     #### Define API endpoints ####
 
@@ -94,7 +100,7 @@ def create_app():
         return response
 
     @app.get("/health", response_model=HealthResponse)
-    def health(): 
+    def health():
         """Health check endpoint."""
         return HealthResponse(status="ok")
 
@@ -121,7 +127,7 @@ def create_app():
             raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     @app.post("/summarize", response_model=SummaryResponse)
-    def summarize(request: VideoRequest): 
+    def summarize(request: VideoRequest):
         """Summarize the video at the given URL."""
         try:
             return SummaryResponse(summary=service.summarize_video(request.video_url))
