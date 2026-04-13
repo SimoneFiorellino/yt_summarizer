@@ -3,8 +3,10 @@
 import logging
 import time
 
+from yt_summarizer.config import load_config
 from yt_summarizer.core import VideoRAGService
 from yt_summarizer.errors import YTSummarizerError
+from yt_summarizer.ingestion import ingest_video
 
 
 logger = logging.getLogger(__name__)
@@ -31,10 +33,28 @@ def create_app():
         """Request model for video summarization."""
         video_url: str
 
+    class HealthResponse(BaseModel):
+        """Response model for API health checks."""
+        status: str
+
+    class IngestVideoResponse(BaseModel):
+        """Response model for transcript ingestion."""
+        video_id: str
+        transcript_items: int
+        processed_chars: int
+
     class QuestionRequest(BaseModel):
         """Request model for question answering."""
         video_url: str
         question: str
+
+    class SummaryResponse(BaseModel):
+        """Response model for video summarization."""
+        summary: str
+
+    class AnswerResponse(BaseModel):
+        """Response model for question answering."""
+        answer: str
 
     #### RAG logic and API endpoints ####
 
@@ -73,16 +93,38 @@ def create_app():
         )
         return response
 
-    @app.get("/health")
+    @app.get("/health", response_model=HealthResponse)
     def health(): 
         """Health check endpoint."""
-        return {"status": "ok"}
+        return HealthResponse(status="ok")
 
-    @app.post("/summarize")
+    @app.post("/ingest_video", response_model=IngestVideoResponse)
+    def ingest(request: VideoRequest):
+        """Fetch and preprocess the transcript for a YouTube video."""
+        try:
+            ingested = ingest_video(request.video_url)
+            return IngestVideoResponse(
+                video_id=ingested.video_id,
+                transcript_items=len(ingested.raw_transcript),
+                processed_chars=len(ingested.processed_text),
+            )
+        except YTSummarizerError as exc:
+            logger.warning(
+                "api_error",
+                extra={
+                    "endpoint": "ingest_video",
+                    "error_type": type(exc).__name__,
+                    "status_code": exc.status_code,
+                    "error": str(exc),
+                },
+            )
+            raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
+
+    @app.post("/summarize", response_model=SummaryResponse)
     def summarize(request: VideoRequest): 
         """Summarize the video at the given URL."""
         try:
-            return {"summary": service.summarize_video(request.video_url)}
+            return SummaryResponse(summary=service.summarize_video(request.video_url))
         except YTSummarizerError as exc:
             logger.warning(
                 "api_error",
@@ -95,11 +137,13 @@ def create_app():
             )
             raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
-    @app.post("/ask")
+    @app.post("/ask", response_model=AnswerResponse)
     def ask(request: QuestionRequest):
         """Answer a question about the video at the given URL."""
         try:
-            return {"answer": service.answer_question(request.video_url, request.question)}
+            return AnswerResponse(
+                answer=service.answer_question(request.video_url, request.question)
+            )
         except YTSummarizerError as exc:
             logger.warning(
                 "api_error",
@@ -113,3 +157,16 @@ def create_app():
             raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     return app
+
+
+def main():
+    """Run the API server with Uvicorn."""
+    import uvicorn
+
+    config = load_config()
+    uvicorn.run(
+        "yt_summarizer.api.app:create_app",
+        factory=True,
+        host=config.api_host,
+        port=config.api_port,
+    )
